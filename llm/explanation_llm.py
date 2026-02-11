@@ -1,18 +1,20 @@
-import openai
 from utils.prompt_builder import build_prompt
 
-openai.api_key = "YOUR_API_KEY"
-
 def generate_explanation(result):
+    """
+    Lightweight explanation generator (LLM-ready).
+    Can be replaced with OpenAI / Ollama / LLaMA.
+    """
+
     prompt = build_prompt(result)
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You explain AI decisions clearly."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3
+    # Simple deterministic explanation (safe fallback)
+    explanation = (
+        f"This media was classified as {'FAKE' if result['is_fake'] else 'REAL'} "
+        f"with a confidence of {result['confidence']*100:.1f}%. "
+        "The system detected multiple forensic inconsistencies, including "
+        + ", ".join(result.get("artifacts", []))
+        + ". These patterns are commonly associated with manipulated or AI-generated media."
     )
 
-    return response["choices"][0]["message"]["content"]
+    return explanation

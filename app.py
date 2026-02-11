@@ -148,10 +148,7 @@ if uploaded_file:
         f.write(uploaded_file.read())
 
     with st.spinner("Running deepfake forensic analysis..."):
-        # CNN / Vision Detection
-       detection_result = predict_media(file_path)
-
-        # LLM Explanation
+        detection_result = predict_media(file_path)
         explanation = generate_explanation(detection_result)
 
     st.success("✅ Analysis Complete")
@@ -182,3 +179,4 @@ if uploaded_file:
 
 else:
     st.info("⬆️ Upload a media file to begin forensic analysis.")
+

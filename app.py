@@ -68,65 +68,7 @@ with top_r:
         "<span class='pulse'></span><strong>SYSTEM ONLINE</strong>",
         unsafe_allow_html=True
     )
-    st.caption("CNN Models • LLM Explainability")
-
-st.markdown("---")
-
-# ======================
-# SUPPORTED MEDIA
-# ======================
-st.subheader("📁 Supported Media Types")
-
-m1, m2, m3 = st.columns(3)
-
-with m1:
-    with st.container(border=True):
-        st.markdown("### 🎥 Video")
-        st.write("Detect facial, lip-sync, and temporal manipulation.")
-        st.caption("MP4 • MOV")
-
-with m2:
-    with st.container(border=True):
-        st.markdown("### 🎧 Audio")
-        st.write("Analyze voice cloning and audio inconsistencies.")
-        st.caption("WAV • MP3")
-
-with m3:
-    with st.container(border=True):
-        st.markdown("### 🖼️ Image")
-        st.write("Inspect visual artifacts and AI-generated patterns.")
-        st.caption("JPG • PNG")
-
-st.markdown("---")
-
-# ======================
-# FORENSIC MODULES
-# ======================
-c1, c2, c3 = st.columns(3, vertical_alignment="top")
-
-with c1:
-    with st.container(border=True):
-        st.subheader("🔍 Analyze")
-        st.write(
-            "Upload media to perform AI-based deepfake detection "
-            "using forensic signals."
-        )
-
-with c2:
-    with st.container(border=True):
-        st.subheader("🧾 Evidence")
-        st.write(
-            "Review detected anomalies, confidence scores, "
-            "and AI-generated explanations."
-        )
-
-with c3:
-    with st.container(border=True):
-        st.subheader("📤 Export")
-        st.write(
-            "Generate structured forensic results suitable "
-            "for academic reporting."
-        )
+    st.caption("CNN Models • Explainable AI")
 
 st.markdown("---")
 
@@ -147,36 +89,46 @@ if uploaded_file:
     with open(file_path, "wb") as f:
         f.write(uploaded_file.read())
 
-    with st.spinner("Running deepfake forensic analysis..."):
-        detection_result = predict_media(file_path)
-        explanation = generate_explanation(detection_result)
+    # Preview
+    suffix = uploaded_file.name.split(".")[-1].lower()
+    if suffix in ["mp4", "mov", "m4v", "avi", "mkv"]:
+        st.video(file_path)
+    elif suffix in ["wav", "mp3"]:
+        st.audio(file_path)
+    elif suffix in ["jpg", "jpeg", "png"]:
+        st.image(file_path, width=700)
 
-    st.success("✅ Analysis Complete")
+    # Run detection
+    if st.button("🔍 Run Detection", use_container_width=True):
+        with st.spinner("Processing media..."):
+            detection_result = predict_media(file_path)
+            explanation = generate_explanation(detection_result)
 
-    st.markdown("---")
-    st.subheader("📊 Detection Results")
+        st.success("✅ Analysis Complete")
 
-    col_a, col_b = st.columns([2, 1])
+        st.markdown("---")
+        st.subheader("📊 Detection Results")
 
-    with col_a:
-        st.metric(
-            label="Verdict",
-            value="FAKE" if detection_result["is_fake"] else "REAL"
-        )
-        st.progress(int(detection_result["confidence"] * 100))
-        st.caption(
-            f"Confidence Score: {detection_result['confidence']*100:.1f}%"
-        )
+        col_a, col_b = st.columns([2, 1])
 
-    with col_b:
-        st.markdown("### 🔎 Detected Artifacts")
-        for a in detection_result["artifacts"]:
-            st.write(f"• {a}")
+        with col_a:
+            st.metric(
+                label="Verdict",
+                value="FAKE" if detection_result["is_fake"] else "REAL"
+            )
+            st.progress(int(detection_result["confidence"] * 100))
+            st.caption(
+                f"Confidence Score: {detection_result['confidence']*100:.1f}%"
+            )
 
-    st.markdown("---")
-    st.subheader("🧠 AI Explanation (Explainable AI)")
-    st.write(explanation)
+        with col_b:
+            st.markdown("### 🔎 Detected Artifacts")
+            for a in detection_result["artifacts"]:
+                st.write(f"• {a}")
+
+        st.markdown("---")
+        st.subheader("🧠 AI Explanation (Explainable AI)")
+        st.write(explanation)
 
 else:
     st.info("⬆️ Upload a media file to begin forensic analysis.")
-

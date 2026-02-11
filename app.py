@@ -1,8 +1,4 @@
 import streamlit as st
-import os
-
-from src.app_predict import predict_media
-from llm.explanation_llm import generate_explanation
 
 # ======================
 # PAGE CONFIG
@@ -73,62 +69,48 @@ with top_r:
 st.markdown("---")
 
 # ======================
-# FILE UPLOAD & ANALYSIS
+# INTRO & NAVIGATION
 # ======================
-st.subheader("📤 Upload Media for Analysis")
+st.subheader("📁 Get Started")
 
-uploaded_file = st.file_uploader(
-    "Choose a file",
-    type=["mp4", "mov", "wav", "mp3", "jpg", "png"]
+st.write(
+    "Welcome to the Deepfake Detection Control Center. "
+    "Use the sidebar to navigate through the system modules."
 )
 
-if uploaded_file:
-    os.makedirs("temp", exist_ok=True)
-    file_path = os.path.join("temp", uploaded_file.name)
+st.info(
+    "➡️ Open the **Detection** page from the left sidebar to upload media "
+    "and perform forensic analysis."
+)
 
-    with open(file_path, "wb") as f:
-        f.write(uploaded_file.read())
+st.markdown("---")
 
-    # Preview
-    suffix = uploaded_file.name.split(".")[-1].lower()
-    if suffix in ["mp4", "mov", "m4v", "avi", "mkv"]:
-        st.video(file_path)
-    elif suffix in ["wav", "mp3"]:
-        st.audio(file_path)
-    elif suffix in ["jpg", "jpeg", "png"]:
-        st.image(file_path, width=700)
+st.subheader("📊 System Overview")
 
-    # Run detection
-    if st.button("🔍 Run Detection", use_container_width=True):
-        with st.spinner("Processing media..."):
-            detection_result = predict_media(file_path)
-            explanation = generate_explanation(detection_result)
+col1, col2, col3 = st.columns(3)
 
-        st.success("✅ Analysis Complete")
+with col1:
+    st.markdown("### 🎥 Video Analysis")
+    st.write("Detect facial, lip-sync, and temporal manipulations.")
+    st.caption("Supported: MP4, MOV, AVI, MKV")
 
-        st.markdown("---")
-        st.subheader("📊 Detection Results")
+with col2:
+    st.markdown("### 🎧 Audio Analysis")
+    st.write("Analyze voice cloning and audio inconsistencies.")
+    st.caption("Supported: WAV, MP3")
 
-        col_a, col_b = st.columns([2, 1])
+with col3:
+    st.markdown("### 🖼️ Image Analysis")
+    st.write("Inspect visual artifacts and AI-generated patterns.")
+    st.caption("Supported: JPG, PNG")
 
-        with col_a:
-            st.metric(
-                label="Verdict",
-                value="FAKE" if detection_result["is_fake"] else "REAL"
-            )
-            st.progress(int(detection_result["confidence"] * 100))
-            st.caption(
-                f"Confidence Score: {detection_result['confidence']*100:.1f}%"
-            )
+st.markdown("---")
 
-        with col_b:
-            st.markdown("### 🔎 Detected Artifacts")
-            for a in detection_result["artifacts"]:
-                st.write(f"• {a}")
+st.subheader("⚡ Quick Info")
 
-        st.markdown("---")
-        st.subheader("🧠 AI Explanation (Explainable AI)")
-        st.write(explanation)
-
-else:
-    st.info("⬆️ Upload a media file to begin forensic analysis.")
+st.write(
+    "- The Detection page is the main module for uploading and analyzing media.\n"
+    "- After running detection, results and AI explanations are available on the Results page.\n"
+    "- This system supports multi-modal forensic analysis (video, audio, image).\n"
+    "- All explanations are human-readable and explain why media is likely manipulated."
+)

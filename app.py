@@ -149,7 +149,7 @@ if uploaded_file:
 
     with st.spinner("Running deepfake forensic analysis..."):
         # CNN / Vision Detection
-        detection_result = run_detection(file_path)
+       detection_result = predict_media(file_path)
 
         # LLM Explanation
         explanation = generate_explanation(detection_result)

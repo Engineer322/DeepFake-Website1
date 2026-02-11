@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-from detection.detector import run_detection
+from src.app_predict import predict_media
 from llm.explanation_llm import generate_explanation
 
 # ======================

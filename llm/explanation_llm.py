@@ -1,15 +1,9 @@
-from utils.prompt_builder import build_prompt
-
 def generate_explanation(result):
     """
-    Generates a human-readable explanation based on
-    predict_media() output.
+    Generates a human-readable forensic explanation
+    based on predict_media() output.
     """
 
-    # Build prompt (optional, for future LLM)
-    _ = build_prompt(result)
-
-    # Create human-friendly explanation
     explanation = f"This media is likely {'FAKE' if result['is_fake'] else 'REAL'} " \
                   f"with a confidence of {result['confidence']*100:.1f}%. "
 

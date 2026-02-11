@@ -1,4 +1,8 @@
 import streamlit as st
+import os
+
+from detection.detector import run_detection
+from llm.explanation_llm import generate_explanation
 
 # ======================
 # PAGE CONFIG
@@ -15,7 +19,7 @@ st.set_page_config(
 with open("assets/cyber.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-# Extra inline effects (safe)
+# Extra inline effects
 st.markdown("""
 <style>
 .pulse {
@@ -45,7 +49,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ======================
-# TOP CONTROL HEADER
+# TOP HEADER
 # ======================
 top_l, top_r = st.columns([3, 1], vertical_alignment="top")
 
@@ -64,12 +68,12 @@ with top_r:
         "<span class='pulse'></span><strong>SYSTEM ONLINE</strong>",
         unsafe_allow_html=True
     )
-    st.caption("FFmpeg • Whisper • Trained Models")
+    st.caption("CNN Models • LLM Explainability")
 
 st.markdown("---")
 
 # ======================
-# MEDIA SUPPORT OVERVIEW
+# SUPPORTED MEDIA
 # ======================
 st.subheader("📁 Supported Media Types")
 
@@ -96,7 +100,7 @@ with m3:
 st.markdown("---")
 
 # ======================
-# CORE FORENSIC MODULES
+# FORENSIC MODULES
 # ======================
 c1, c2, c3 = st.columns(3, vertical_alignment="top")
 
@@ -104,48 +108,77 @@ with c1:
     with st.container(border=True):
         st.subheader("🔍 Analyze")
         st.write(
-            "Upload **video, audio, or images** to perform "
-            "AI-based deepfake detection using forensic signals."
+            "Upload media to perform AI-based deepfake detection "
+            "using forensic signals."
         )
-        st.caption("Recommended input length: 5–15 seconds")
 
 with c2:
     with st.container(border=True):
         st.subheader("🧾 Evidence")
         st.write(
-            "Review extracted transcripts, detected anomalies, "
-            "and probability-based authenticity scoring."
+            "Review detected anomalies, confidence scores, "
+            "and AI-generated explanations."
         )
-        st.caption("REAL vs FAKE breakdown")
 
 with c3:
     with st.container(border=True):
         st.subheader("📤 Export")
         st.write(
-            "Generate a structured forensic report suitable "
-            "for academic or official submission."
+            "Generate structured forensic results suitable "
+            "for academic reporting."
         )
-        st.caption("Downloadable results")
 
 st.markdown("---")
 
 # ======================
-# FAKE CONFIDENCE PREVIEW
+# FILE UPLOAD & ANALYSIS
 # ======================
-st.subheader("📊 Detection Confidence (Preview)")
+st.subheader("📤 Upload Media for Analysis")
 
-p1, p2 = st.columns([3, 1])
+uploaded_file = st.file_uploader(
+    "Choose a file",
+    type=["mp4", "mov", "wav", "mp3", "jpg", "png"]
+)
 
-with p1:
-    st.progress(72)
-    st.caption("Example confidence score (UI preview only)")
+if uploaded_file:
+    os.makedirs("temp", exist_ok=True)
+    file_path = os.path.join("temp", uploaded_file.name)
 
-with p2:
-    st.metric(label="Verdict", value="LIKELY FAKE", delta="+72%")
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.read())
 
-st.markdown("")
+    with st.spinner("Running deepfake forensic analysis..."):
+        # CNN / Vision Detection
+        detection_result = run_detection(file_path)
 
-# ======================
-# CALL TO ACTION
-# ======================
-st.info("➡️ Open **Detection** from the left sidebar to begin forensic analysis.")
+        # LLM Explanation
+        explanation = generate_explanation(detection_result)
+
+    st.success("✅ Analysis Complete")
+
+    st.markdown("---")
+    st.subheader("📊 Detection Results")
+
+    col_a, col_b = st.columns([2, 1])
+
+    with col_a:
+        st.metric(
+            label="Verdict",
+            value="FAKE" if detection_result["is_fake"] else "REAL"
+        )
+        st.progress(int(detection_result["confidence"] * 100))
+        st.caption(
+            f"Confidence Score: {detection_result['confidence']*100:.1f}%"
+        )
+
+    with col_b:
+        st.markdown("### 🔎 Detected Artifacts")
+        for a in detection_result["artifacts"]:
+            st.write(f"• {a}")
+
+    st.markdown("---")
+    st.subheader("🧠 AI Explanation (Explainable AI)")
+    st.write(explanation)
+
+else:
+    st.info("⬆️ Upload a media file to begin forensic analysis.")

@@ -1,4 +1,5 @@
 import streamlit as st
+from llm.explanation_llm import generate_explanation   # ✅ NEW
 
 # ======================
 # PAGE CONFIG
@@ -85,6 +86,45 @@ st.info(
 
 st.markdown("---")
 
+# ======================
+# 🔍 RESULTS SECTION (NEW)
+# ======================
+if "prediction" in st.session_state:
+
+    st.subheader("📊 Detection Results")
+
+    prediction   = st.session_state.prediction
+    confidence   = st.session_state.confidence
+    real_prob    = st.session_state.real_prob
+    fake_prob    = st.session_state.fake_prob
+    media_type   = st.session_state.media_type
+    meta         = st.session_state.meta   # content-aware metadata
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Verdict", prediction)
+    col2.metric("Confidence", f"{confidence:.2f}%")
+    col3.metric("Fake Probability", f"{fake_prob:.2f}%")
+
+    # ======================
+    # 🧠 AI EXPLANATION
+    # ======================
+    explanation = generate_explanation(
+        media_type=media_type,
+        result=prediction,
+        confidence=confidence,
+        real_prob=real_prob,
+        fake_prob=fake_prob,
+        meta=meta
+    )
+
+    st.markdown("### 🧠 AI Explanation")
+    st.info(explanation)
+
+    st.markdown("---")
+
+# ======================
+# SYSTEM OVERVIEW
+# ======================
 st.subheader("📊 System Overview")
 
 col1, col2, col3 = st.columns(3)
@@ -110,7 +150,7 @@ st.subheader("⚡ Quick Info")
 
 st.write(
     "- The Detection page is the main module for uploading and analyzing media.\n"
-    "- After running detection, results and AI explanations are available on the Results page.\n"
+    "- After running detection, results and AI explanations are available on this page.\n"
     "- This system supports multi-modal forensic analysis (video, audio, image).\n"
-    "- All explanations are human-readable and explain why media is likely manipulated."
+    "- All explanations are content-aware and justify why media is likely manipulated."
 )

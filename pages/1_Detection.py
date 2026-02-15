@@ -5,10 +5,8 @@ from src.app_predict import predict_media
 
 st.set_page_config(page_title="Detection", page_icon="🔍", layout="wide")
 
-
 with open("assets/cyber.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
 
 st.markdown("""
 <style>
@@ -111,7 +109,9 @@ run = st.button(
 )
 st.markdown('</div>', unsafe_allow_html=True)
 
-
+# ======================
+# RUN DETECTION
+# ======================
 if run and uploaded:
     with tempfile.TemporaryDirectory() as td:
         temp_path = Path(td) / uploaded.name
@@ -120,10 +120,30 @@ if run and uploaded:
         with st.spinner("Processing media..."):
             result = predict_media(str(temp_path))
 
-        # Save result to session state
+        # ======================
+        # ✅ SAVE RESULTS FOR EXPLANATION
+        # ======================
+        st.session_state.prediction  = result["label"]          # "REAL" / "FAKE"
+        st.session_state.confidence  = result["confidence"]     # float %
+        st.session_state.real_prob   = result["real_prob"]      # float
+        st.session_state.fake_prob   = result["fake_prob"]      # float
+        st.session_state.media_type  = file_type
+
+        # Content-aware metadata
+        st.session_state.meta = {
+            "face_detected": file_type in ["image", "video"],
+            "audio_present": file_type in ["audio", "video"],
+            "voice_detected": file_type in ["audio", "video"],
+            "duration": result.get("duration", None)
+        }
+
+        # Keep original result if needed elsewhere
         st.session_state["result"] = result
 
 
+# ======================
+# NAVIGATION
+# ======================
 if st.session_state.get("result"):
     if st.button("➡️ Go to Results Page", use_container_width=True):
         st.switch_page("pages/2_Results.py")

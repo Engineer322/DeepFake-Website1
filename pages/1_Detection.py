@@ -3,8 +3,14 @@ import tempfile
 from pathlib import Path
 from src.app_predict import predict_media  
 
+# ======================
+# PAGE CONFIG
+# ======================
 st.set_page_config(page_title="Detection", page_icon="🔍", layout="wide")
 
+# ======================
+# LOAD CSS
+# ======================
 with open("assets/cyber.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -24,6 +30,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ======================
+# HEADER
+# ======================
 st.markdown("""
 <div class="df-card-plain">
   <h2 style="margin:0;">🧪 Detection Lab</h2>
@@ -34,8 +43,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("")
-
+# ======================
+# UPLOAD UI
+# ======================
 colA, colB = st.columns([1.3, 1])
 
 with colA:
@@ -81,6 +91,9 @@ with colA:
             file_type = "image"
             st.image(file_bytes, width=700)
 
+# ======================
+# PIPELINE INFO
+# ======================
 with colB:
     st.markdown("""
 <div class="df-card-plain">
@@ -101,6 +114,9 @@ Short clips/images give the fastest results.
 </div>
 """, unsafe_allow_html=True)
 
+# ======================
+# RUN BUTTON
+# ======================
 st.markdown('<div class="run-btn">', unsafe_allow_html=True)
 run = st.button(
     "🔍 Run Detection",
@@ -121,25 +137,34 @@ if run and uploaded:
             result = predict_media(str(temp_path))
 
         # ======================
-        # ✅ SAVE RESULTS FOR EXPLANATION
+        # ✅ SAFE SAVE TO SESSION_STATE
         # ======================
-        st.session_state.prediction  = result["label"]          # "REAL" / "FAKE"
-        st.session_state.confidence  = result["confidence"]     # float %
-        st.session_state.real_prob   = result["real_prob"]      # float
-        st.session_state.fake_prob   = result["fake_prob"]      # float
-        st.session_state.media_type  = file_type
+        if not result or not isinstance(result, dict):
+            st.error(f"Prediction failed: invalid result returned -> {result}")
+            st.session_state.prediction = "Error"
+            st.session_state.confidence = 0.0
+            st.session_state.real_prob = 0.0
+            st.session_state.fake_prob = 0.0
+            st.session_state.media_type = file_type
+            st.session_state.meta = {}
+        else:
+            st.session_state.prediction = result.get("label", "Unknown")
+            st.session_state.confidence = result.get("confidence", 0.0)
+            st.session_state.real_prob = result.get("real_prob", 0.0)
+            st.session_state.fake_prob = result.get("fake_prob", 0.0)
+            st.session_state.media_type = file_type
 
-        # Content-aware metadata
-        st.session_state.meta = {
-            "face_detected": file_type in ["image", "video"],
-            "audio_present": file_type in ["audio", "video"],
-            "voice_detected": file_type in ["audio", "video"],
-            "duration": result.get("duration", None)
-        }
+            st.session_state.meta = {
+                "face_detected": file_type in ["image", "video"],
+                "audio_present": file_type in ["audio", "video"],
+                "voice_detected": file_type in ["audio", "video"],
+                "duration": result.get("duration", None)
+            }
 
-        # Keep original result if needed elsewhere
-        st.session_state["result"] = result
+            st.session_state["result"] = result
 
+        # DEBUG: show result in Streamlit
+        st.write("Debug result:", result)
 
 # ======================
 # NAVIGATION
